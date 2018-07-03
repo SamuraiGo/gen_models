@@ -192,7 +192,7 @@ func get_database_info() {
 			}
 		case "windows":
 			{
-				_, err := exec.Command("cmd", "/c", `gofmt -w ./templates/*.go`).Output()
+				_, err := exec.Command("cmd", "/c", `gofmt -w templates`).Output()
 				if err != nil {
 					log.Fatalf("【get_database_info】执行gofmt结果出错:%s\n", err.Error())
 				}
