@@ -9,7 +9,9 @@ import (
 	"strings"
 	"github.com/ha666/gen_models/gen_mysql/models"
 	"github.com/ha666/gen_models/utils"
-)
+	"os/exec"
+	"runtime"
+	)
 
 var (
 	p            = ""
@@ -173,6 +175,32 @@ func get_database_info() {
 		for index, table := range table_infos {
 			log.Printf("【get_database_info】%d/%d，%s", index+1, count, table.TableName)
 			generator_table(&table)
+		}
+	}
+
+	// 执行gofmt
+	{
+		os_name := runtime.GOOS
+		switch os_name {
+		case "darwin","linux":
+			{
+				cmd := exec.Command("sh", "-c", "gofmt -w ./templates/*.go")
+				_, err := cmd.Output()
+				if err != nil {
+					log.Fatalf("【get_database_info】执行gofmt结果出错:%s\n", err.Error())
+				}
+			}
+		case "windows":
+			{
+				_, err := exec.Command("cmd", "/c", `gofmt -w ./templates/*.go`).Output()
+				if err != nil {
+					log.Fatalf("【get_database_info】执行gofmt结果出错:%s\n", err.Error())
+				}
+			}
+		default:
+			{
+				log.Println("【get_database_info】未知系统")
+			}
 		}
 	}
 
