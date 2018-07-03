@@ -3,12 +3,12 @@ package gen_mysql
 import (
 	"bufio"
 	"fmt"
-	"gen_models/gen_mysql/models"
-	"gen_models/utils"
 	"github.com/astaxie/beego"
 	"log"
 	"os"
 	"strings"
+	"github.com/ha666/gen_models/gen_mysql/models"
+	"github.com/ha666/gen_models/utils"
 )
 
 var (
@@ -328,6 +328,27 @@ func generator_table(table *models.TableInfo) {
 	// Exist
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 根据【")
+		for index, column := range column_info {
+			if !strings.EqualFold(column.ColumnKey, "PRI") {
+				continue
+			}
+			if index > 0 {
+				fmt.Fprint(w, ",")
+			}
+			if len(column.ColumnComment)>0{
+				fmt.Fprint(w,column.ColumnComment)
+			}else{
+				fmt.Fprint(w,column.ColumnName)
+			}
+		}
+		fmt.Fprint(w,"】查询【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表中是否存在相关记录")
 		fmt.Fprint(w, fmt.Sprintf("func Exist%s(", struct_name))
 		for index, column := range column_info {
 			if !strings.EqualFold(column.ColumnKey, "PRI") {
@@ -379,6 +400,13 @@ func generator_table(table *models.TableInfo) {
 	// Insert
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 插入单条记录到【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表中")
 		fmt.Fprint(w, fmt.Sprintf("func Insert%s(%s *%s) (", struct_name, table.TableName, struct_name))
 		if is_auto_increment {
 			fmt.Fprint(w, "int64")
@@ -447,6 +475,27 @@ func generator_table(table *models.TableInfo) {
 	// Update
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 根据【")
+		for index, column := range column_info {
+			if !strings.EqualFold(column.ColumnKey, "PRI") {
+				continue
+			}
+			if index > 0 {
+				fmt.Fprint(w, ",")
+			}
+			if len(column.ColumnComment)>0{
+				fmt.Fprint(w,column.ColumnComment)
+			}else{
+				fmt.Fprint(w,column.ColumnName)
+			}
+		}
+		fmt.Fprint(w,"】修改【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表的单条记录")
 		fmt.Fprintln(w, fmt.Sprintf("func Update%s(%s *%s) (bool, error) {", struct_name, table.TableName, struct_name))
 		fmt.Fprint(w, fmt.Sprintf("\tresult, err := %s.Exec(\"update %s set ", conn_name, table.TableName))
 		init_index = 0
@@ -507,6 +556,13 @@ func generator_table(table *models.TableInfo) {
 	{
 		if !is_auto_increment {
 			fmt.Fprintln(w, "")
+			fmt.Fprint(w,"// 插入或修改【")
+			if len(table.TableComment)>0{
+				fmt.Fprint(w,table.TableComment)
+			}else{
+				fmt.Fprint(w,table.TableName)
+			}
+			fmt.Fprintln(w,"】表的单条记录")
 			fmt.Fprintln(w, fmt.Sprintf("func InsertUpdate%s(%s *%s) (bool, error) {", struct_name, table.TableName, struct_name))
 			fmt.Fprint(w, fmt.Sprintf("\tresult, err := %s.Exec(\"insert into %s(", conn_name, table.TableName))
 			init_index = 0
@@ -577,6 +633,27 @@ func generator_table(table *models.TableInfo) {
 	// Delete
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 根据【")
+		for index, column := range column_info {
+			if !strings.EqualFold(column.ColumnKey, "PRI") {
+				continue
+			}
+			if index > 0 {
+				fmt.Fprint(w, ",")
+			}
+			if len(column.ColumnComment)>0{
+				fmt.Fprint(w,column.ColumnComment)
+			}else{
+				fmt.Fprint(w,column.ColumnName)
+			}
+		}
+		fmt.Fprint(w,"】删除【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表中的单条记录")
 		fmt.Fprint(w, fmt.Sprintf("func Delete%s(", struct_name))
 		init_index = 0
 		for _, column := range column_info {
@@ -630,7 +707,27 @@ func generator_table(table *models.TableInfo) {
 	{
 		if pk_count == 1 {
 			fmt.Fprintln(w, "")
-			fmt.Fprintln(w, fmt.Sprintf("// 根据%s数组删除%s记录", pk_column.ColumnComment, table.TableComment))
+			fmt.Fprint(w,"// 根据【")
+			for index, column := range column_info {
+				if !strings.EqualFold(column.ColumnKey, "PRI") {
+					continue
+				}
+				if index > 0 {
+					fmt.Fprint(w, ",")
+				}
+				if len(column.ColumnComment)>0{
+					fmt.Fprint(w,column.ColumnComment)
+				}else{
+					fmt.Fprint(w,column.ColumnName)
+				}
+			}
+			fmt.Fprint(w,"】数组删除【")
+			if len(table.TableComment)>0{
+				fmt.Fprint(w,table.TableComment)
+			}else{
+				fmt.Fprint(w,table.TableName)
+			}
+			fmt.Fprintln(w,"】表中的多条记录,最多20条")
 			fmt.Fprintln(w, fmt.Sprintf("func Delete%sIn%s(%ss []%s) (count int64, err error) {", struct_name, pk_column.ColumnName, pk_column.ColumnName, get_field_type(pk_column.DataType)))
 			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) <= 0 {", pk_column.ColumnName))
 			fmt.Fprintln(w, fmt.Sprintf("\t\treturn count, errors.New(\"%ss is empty\")", pk_column.ColumnName))
@@ -676,6 +773,27 @@ func generator_table(table *models.TableInfo) {
 	// Get
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 根据【")
+		for index, column := range column_info {
+			if !strings.EqualFold(column.ColumnKey, "PRI") {
+				continue
+			}
+			if index > 0 {
+				fmt.Fprint(w, ",")
+			}
+			if len(column.ColumnComment)>0{
+				fmt.Fprint(w,column.ColumnComment)
+			}else{
+				fmt.Fprint(w,column.ColumnName)
+			}
+		}
+		fmt.Fprint(w,"】查询【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表中的单条记录")
 		fmt.Fprint(w, fmt.Sprintf("func Get%s(", struct_name))
 		init_index = 0
 		for _, column := range column_info {
@@ -742,7 +860,27 @@ func generator_table(table *models.TableInfo) {
 	{
 		if pk_count == 1 {
 			fmt.Fprintln(w, "")
-			fmt.Fprintln(w, fmt.Sprintf("// 根据%s数组查询%s列表", pk_column.ColumnComment, table.TableComment))
+			fmt.Fprint(w,"// 根据【")
+			for index, column := range column_info {
+				if !strings.EqualFold(column.ColumnKey, "PRI") {
+					continue
+				}
+				if index > 0 {
+					fmt.Fprint(w, ",")
+				}
+				if len(column.ColumnComment)>0{
+					fmt.Fprint(w,column.ColumnComment)
+				}else{
+					fmt.Fprint(w,column.ColumnName)
+				}
+			}
+			fmt.Fprint(w,"】数组查询【")
+			if len(table.TableComment)>0{
+				fmt.Fprint(w,table.TableComment)
+			}else{
+				fmt.Fprint(w,table.TableName)
+			}
+			fmt.Fprintln(w,"】表中的多条记录,最多20条")
 			fmt.Fprintln(w, fmt.Sprintf("func Get%sIn%s(%ss []%s) (%ss []%s, err error) {", struct_name, pk_column.ColumnName, pk_column.ColumnName, get_field_type(pk_column.DataType), table.TableName, struct_name))
 			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) <= 0 {", pk_column.ColumnName))
 			fmt.Fprintln(w, fmt.Sprintf("\t\treturn %ss, errors.New(\"%ss is empty\")", table.TableName, pk_column.ColumnName))
@@ -802,7 +940,32 @@ func generator_table(table *models.TableInfo) {
 				continue
 			}
 			fmt.Fprintln(w, "")
-			fmt.Fprintln(w, fmt.Sprintf("// %s,%s", key, index[0].IndexComment))
+			fmt.Fprint(w,"// 根据【")
+			for index, index_a := range index {
+				tmp_column, err := get_column_by_name(index_a.ColumnName, column_info)
+				if err != nil {
+					log.Fatalf("【generator_table】生成表:%s,index:%s,column_name:%s,err:%s\n", table.TableName, key, index_a.ColumnName, err.Error())
+				}
+				if len(tmp_column.ColumnName) <= 0 {
+					log.Fatalf("【generator_table】生成表:%s,index:%s,column_name:%s,err:没有找到\n", table.TableName, key, index_a.ColumnName)
+				}
+				if index>0{
+					fmt.Fprint(w,",")
+				}
+				if len(tmp_column.ColumnComment)>0{
+					fmt.Fprint(w, tmp_column.ColumnComment)
+				}else{
+					fmt.Fprint(w, tmp_column.ColumnName)
+				}
+			}
+			fmt.Fprint(w,"】查询【")
+			if len(table.TableComment)>0{
+				fmt.Fprint(w,table.TableComment)
+			}else{
+				fmt.Fprint(w,table.TableName)
+			}
+			fmt.Fprint(w,"】表中的多条记录，使用索引【")
+			fmt.Fprintln(w, fmt.Sprintf("%s,%s】",index[0].IndexName,index[0].IndexComment))
 			fmt.Fprint(w, fmt.Sprintf("func Get%sBy", struct_name))
 			for _, index_a := range index {
 				tmp_column, err := get_column_by_name(index_a.ColumnName, column_info)
@@ -907,6 +1070,13 @@ func generator_table(table *models.TableInfo) {
 		// 查询全部记录数
 		{
 			fmt.Fprintln(w, "")
+			fmt.Fprint(w,"// 查询【")
+			if len(table.TableComment)>0{
+				fmt.Fprint(w,table.TableComment)
+			}else{
+				fmt.Fprint(w,table.TableName)
+			}
+			fmt.Fprintln(w,"】表总记录数")
 			fmt.Fprintln(w, fmt.Sprintf("func Get%sRowCount() (count int, err error) {", struct_name))
 			fmt.Fprintln(w, fmt.Sprintf("\trows, err := %s.Query(\"select count(0) Count from %s\")", conn_name, table.TableName))
 			fmt.Fprintln(w, "\tdefer rows.Close()")
@@ -937,7 +1107,32 @@ func generator_table(table *models.TableInfo) {
 					continue
 				}
 				fmt.Fprintln(w, "")
-				fmt.Fprintln(w, fmt.Sprintf("// %s,%s", key, index[0].IndexComment))
+				fmt.Fprint(w,"// 根据【")
+				for index, index_a := range index {
+					tmp_column, err := get_column_by_name(index_a.ColumnName, column_info)
+					if err != nil {
+						log.Fatalf("【generator_table】生成表:%s,index:%s,column_name:%s,err:%s\n", table.TableName, key, index_a.ColumnName, err.Error())
+					}
+					if len(tmp_column.ColumnName) <= 0 {
+						log.Fatalf("【generator_table】生成表:%s,index:%s,column_name:%s,err:没有找到\n", table.TableName, key, index_a.ColumnName)
+					}
+					if index>0{
+						fmt.Fprint(w,",")
+					}
+					if len(tmp_column.ColumnComment)>0{
+						fmt.Fprint(w, tmp_column.ColumnComment)
+					}else{
+						fmt.Fprint(w, tmp_column.ColumnName)
+					}
+				}
+				fmt.Fprint(w,"】查询【")
+				if len(table.TableComment)>0{
+					fmt.Fprint(w,table.TableComment)
+				}else{
+					fmt.Fprint(w,table.TableName)
+				}
+				fmt.Fprint(w,"】表总记录数，使用索引【")
+				fmt.Fprintln(w, fmt.Sprintf("%s,%s】",index[0].IndexName,index[0].IndexComment))
 				fmt.Fprint(w, fmt.Sprintf("func Get%sRowCountBy", struct_name))
 				for _, index_a := range index {
 					fmt.Fprint(w, index_a.ColumnName)
@@ -1013,6 +1208,13 @@ func generator_table(table *models.TableInfo) {
 	// All
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 查询【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表所有记录")
 		fmt.Fprint(w, fmt.Sprintf("func Get%sAll()", struct_name))
 		fmt.Fprintln(w, fmt.Sprintf("(%ss []%s, err error) {", table.TableName, struct_name))
 		fmt.Fprint(w, fmt.Sprintf("\trows, err := %s.Query(\"select ", conn_name))
@@ -1040,6 +1242,13 @@ func generator_table(table *models.TableInfo) {
 		// NonIndex
 		{
 			fmt.Fprintln(w, "")
+			fmt.Fprint(w,"// 分页查询【")
+			if len(table.TableComment)>0{
+				fmt.Fprint(w,table.TableComment)
+			}else{
+				fmt.Fprint(w,table.TableName)
+			}
+			fmt.Fprintln(w,"】表的记录")
 			fmt.Fprint(w, fmt.Sprintf("func Get%sRowList", struct_name))
 			fmt.Fprint(w, "(PageIndex, PageSize int) (")
 			fmt.Fprintln(w, fmt.Sprintf("%ss []%s, err error) {", table.TableName, struct_name))
@@ -1077,7 +1286,32 @@ func generator_table(table *models.TableInfo) {
 					continue
 				}
 				fmt.Fprintln(w, "")
-				fmt.Fprintln(w, fmt.Sprintf("// %s,%s", key, index[0].IndexComment))
+				fmt.Fprint(w,"// 根据【")
+				for index, index_a := range index {
+					tmp_column, err := get_column_by_name(index_a.ColumnName, column_info)
+					if err != nil {
+						log.Fatalf("【generator_table】生成表:%s,index:%s,column_name:%s,err:%s\n", table.TableName, key, index_a.ColumnName, err.Error())
+					}
+					if len(tmp_column.ColumnName) <= 0 {
+						log.Fatalf("【generator_table】生成表:%s,index:%s,column_name:%s,err:没有找到\n", table.TableName, key, index_a.ColumnName)
+					}
+					if index>0{
+						fmt.Fprint(w,",")
+					}
+					if len(tmp_column.ColumnComment)>0{
+						fmt.Fprint(w, tmp_column.ColumnComment)
+					}else{
+						fmt.Fprint(w, tmp_column.ColumnName)
+					}
+				}
+				fmt.Fprint(w,"】分页查询【")
+				if len(table.TableComment)>0{
+					fmt.Fprint(w,table.TableComment)
+				}else{
+					fmt.Fprint(w,table.TableName)
+				}
+				fmt.Fprint(w,"】表的记录，使用索引【")
+				fmt.Fprintln(w, fmt.Sprintf("%s,%s】",index[0].IndexName,index[0].IndexComment))
 				fmt.Fprint(w, fmt.Sprintf("func Get%sRowListBy", struct_name))
 				for _, index_a := range index {
 					fmt.Fprint(w, index_a.ColumnName)
@@ -1157,6 +1391,13 @@ func generator_table(table *models.TableInfo) {
 	// RowsToStruct
 	{
 		fmt.Fprintln(w, "")
+		fmt.Fprint(w,"// 解析【")
+		if len(table.TableComment)>0{
+			fmt.Fprint(w,table.TableComment)
+		}else{
+			fmt.Fprint(w,table.TableName)
+		}
+		fmt.Fprintln(w,"】表记录")
 		fmt.Fprintln(w, fmt.Sprintf("func _%sRowsToArray(rows *sql.Rows) (models []%s, err error) {", struct_name, struct_name))
 		fmt.Fprintln(w, "\tfor rows.Next() {")
 		fmt.Fprintln(w, fmt.Sprintf("\t\tmodel := %s{}", struct_name))

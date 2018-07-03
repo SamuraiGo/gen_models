@@ -1,28 +1,28 @@
 package utils
 
 import (
-	"gitee.com/ha666/golibs"
 	"os"
 	"strings"
+	"bytes"
 )
 
 // 把下划线命名法和小驼峰命名法转成大驼峰命名法
 func ToBigHump(str *string) {
-	data := golibs.NewStringBuilder()
+	var data bytes.Buffer
 	is_capitalize := false
 	for i, s := range *str {
 		if string(s) == "_" {
 			is_capitalize = true
 		} else {
 			if is_capitalize || i == 0 {
-				data.Append(strings.ToUpper(string(s)))
+				data.WriteString(strings.ToUpper(string(s)))
 			} else {
-				data.Append(string(s))
+				data.WriteString(string(s))
 			}
 			is_capitalize = false
 		}
 	}
-	*str = data.ToString()
+	*str = data.String()
 }
 
 // 判断文件夹是否存在

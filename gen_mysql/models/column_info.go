@@ -2,7 +2,7 @@ package models
 
 import (
 	"database/sql"
-	"gen_models/utils"
+	"github.com/ha666/gen_models/utils"
 )
 
 type ColumnInfo struct {
