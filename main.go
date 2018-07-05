@@ -6,7 +6,7 @@ import (
 	"github.com/ha666/gen_models/gen_mysql"
 )
 
-const version = "2018.0703.2008.0"
+const version = "2018.0705.1142.0"
 
 func main() {
 	log.Printf("当前版本：%s\n", version)

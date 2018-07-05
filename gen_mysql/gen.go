@@ -11,7 +11,7 @@ import (
 	"github.com/ha666/gen_models/utils"
 	"os/exec"
 	"runtime"
-	)
+)
 
 var (
 	p            = ""
@@ -310,6 +310,7 @@ func generator_table(table *models.TableInfo) {
 		fmt.Fprintln(w, "\t\"database/sql\"")
 		fmt.Fprintln(w, "\t\"errors\"")
 		fmt.Fprintln(w, "\t\"gitee.com/ha666/golibs\"")
+		fmt.Fprintln(w, "\t\"strings\"")
 		if is_exist_time_type {
 			fmt.Fprintln(w, "\t\"time\"")
 		}
@@ -760,32 +761,18 @@ func generator_table(table *models.TableInfo) {
 			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) <= 0 {", pk_column.ColumnName))
 			fmt.Fprintln(w, fmt.Sprintf("\t\treturn count, errors.New(\"%ss is empty\")", pk_column.ColumnName))
 			fmt.Fprintln(w, "\t}")
-			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) > 20 {", pk_column.ColumnName))
-			fmt.Fprintln(w, "\t\treturn count, errors.New(\"limit 20\")")
-			fmt.Fprintln(w, "\t}")
 			fmt.Fprintln(w, "\tsql_str := golibs.NewStringBuilder()")
 			fmt.Fprintln(w, fmt.Sprintf("\tsql_str.Append(\"delete from %s\")", table.TableName))
 			fmt.Fprintln(w, fmt.Sprintf("\tsql_str.Append(\" where %s in(\")", pk_column.ColumnName))
-			fmt.Fprintln(w, fmt.Sprintf("\tfor i := 0; i < len(%ss); i++ {", pk_column.ColumnName))
-			fmt.Fprintln(w, "\t\tif i > 0 {")
-			fmt.Fprintln(w, "\t\t\tsql_str.Append(\", \")")
-			fmt.Fprintln(w, "\t\t}")
-			fmt.Fprintln(w, "\t\tsql_str.Append(\" ? \")")
-			fmt.Fprintln(w, "\t}")
+			fmt.Fprintln(w,fmt.Sprintf("\tquestion_mark := strings.Repeat(\"?,\", len(%ss))",pk_column.ColumnName))
+			fmt.Fprintln(w,"\tsql_str.Append(question_mark[:len(question_mark)-1])")
 			fmt.Fprintln(w, "\tsql_str.Append(\")\")")
 			fmt.Fprintln(w, "\tvar result sql.Result")
-			fmt.Fprintln(w, fmt.Sprintf("\tswitch len(%ss) {", pk_column.ColumnName))
-			for i := 1; i <= 20; i++ {
-				fmt.Fprintln(w, fmt.Sprintf("\tcase %d:", i))
-				fmt.Fprint(w, fmt.Sprintf("\t\tresult, err = %s.Exec(sql_str.ToString()", conn_name))
-				for j := 0; j < i; j++ {
-					fmt.Fprint(w, fmt.Sprintf(", %ss[%d]", pk_column.ColumnName, j))
-				}
-				fmt.Fprintln(w, ")")
-			}
-			fmt.Fprintln(w, "\tdefault:")
-			fmt.Fprintln(w, "\t\treturn count, errors.New(\"limit 20\")")
-			fmt.Fprintln(w, "\t}")
+			fmt.Fprintln(w,fmt.Sprintf("\tvals := make([]interface{}, 0, len(%ss))",pk_column.ColumnName))
+			fmt.Fprintln(w,fmt.Sprintf("\tfor _, v := range %ss {",pk_column.ColumnName))
+			fmt.Fprintln(w,"\t\tvals = append(vals, v)")
+			fmt.Fprintln(w,"\t}")
+			fmt.Fprintln(w,fmt.Sprintf("result, err = %s.Exec(sql_str.ToString(), vals...)",conn_name))
 			fmt.Fprintln(w, "\tif err != nil {")
 			fmt.Fprintln(w, "\t\treturn count, err")
 			fmt.Fprintln(w, "\t}")
@@ -908,13 +895,10 @@ func generator_table(table *models.TableInfo) {
 			}else{
 				fmt.Fprint(w,table.TableName)
 			}
-			fmt.Fprintln(w,"】表中的多条记录,最多20条")
+			fmt.Fprintln(w,"】表中的多条记录")
 			fmt.Fprintln(w, fmt.Sprintf("func Get%sIn%s(%ss []%s) (%ss []%s, err error) {", struct_name, pk_column.ColumnName, pk_column.ColumnName, get_field_type(pk_column.DataType), table.TableName, struct_name))
 			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) <= 0 {", pk_column.ColumnName))
 			fmt.Fprintln(w, fmt.Sprintf("\t\treturn %ss, errors.New(\"%ss is empty\")", table.TableName, pk_column.ColumnName))
-			fmt.Fprintln(w, "\t}")
-			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) > 20 {", pk_column.ColumnName))
-			fmt.Fprintln(w, fmt.Sprintf("\t\treturn %ss, errors.New(\"limit 20\")", table.TableName))
 			fmt.Fprintln(w, "\t}")
 			fmt.Fprintln(w, "\tsql_str := golibs.NewStringBuilder()")
 			fmt.Fprint(w, "\tsql_str.Append(\"select ")
@@ -929,26 +913,15 @@ func generator_table(table *models.TableInfo) {
 			fmt.Fprintln(w, " from \")")
 			fmt.Fprintln(w, fmt.Sprintf("\tsql_str.Append(\"%s\")", table.TableName))
 			fmt.Fprintln(w, fmt.Sprintf("\tsql_str.Append(\" where %s in(\")", pk_column.ColumnName))
-			fmt.Fprintln(w, fmt.Sprintf("\tfor i := 0; i < len(%ss); i++ {", pk_column.ColumnName))
-			fmt.Fprintln(w, "\t\tif i > 0 {")
-			fmt.Fprintln(w, "\t\t\tsql_str.Append(\", \")")
-			fmt.Fprintln(w, "\t\t}")
-			fmt.Fprintln(w, "\t\tsql_str.Append(\" ? \")")
-			fmt.Fprintln(w, "\t}")
+			fmt.Fprintln(w,fmt.Sprintf("\tquestion_mark := strings.Repeat(\"?,\", len(%ss))",pk_column.ColumnName))
+			fmt.Fprintln(w,"\tsql_str.Append(question_mark[:len(question_mark)-1])")
 			fmt.Fprintln(w, "\tsql_str.Append(\")\")")
 			fmt.Fprintln(w, "\tvar rows *sql.Rows")
-			fmt.Fprintln(w, fmt.Sprintf("\tswitch len(%ss) {", pk_column.ColumnName))
-			for i := 1; i <= 20; i++ {
-				fmt.Fprintln(w, fmt.Sprintf("\tcase %d:", i))
-				fmt.Fprint(w, fmt.Sprintf("\t\trows, err = %s.Query(sql_str.ToString()", conn_name))
-				for j := 0; j < i; j++ {
-					fmt.Fprint(w, fmt.Sprintf(", %ss[%d]", pk_column.ColumnName, j))
-				}
-				fmt.Fprintln(w, ")")
-			}
-			fmt.Fprintln(w, "\tdefault:")
-			fmt.Fprintln(w, fmt.Sprintf("\t\treturn %ss, errors.New(\"limit 20\")", table.TableName))
-			fmt.Fprintln(w, "\t}")
+			fmt.Fprintln(w,fmt.Sprintf("\tvals := make([]interface{}, 0, len(%ss))",pk_column.ColumnName))
+			fmt.Fprintln(w,fmt.Sprintf("\tfor _, v := range %ss {",pk_column.ColumnName))
+			fmt.Fprintln(w,"\t\tvals = append(vals, v)")
+			fmt.Fprintln(w,"\t}")
+			fmt.Fprintln(w,fmt.Sprintf("rows, err = %s.Query(sql_str.ToString(), vals...)",conn_name))
 			fmt.Fprintln(w, "\tdefer rows.Close()")
 			fmt.Fprintln(w, "\tif err != nil {")
 			fmt.Fprintln(w, fmt.Sprintf("\t\treturn %ss, err", table.TableName))
