@@ -36,7 +36,7 @@ func main() {
 		}
 	case "windows":
 		{
-			content, err := exec.Command("cmd", "/c", `gofmt -w templates`).Output()
+			content, err := exec.Command("cmd", "/c", `go version`).Output()
 			if err != nil {
 				log.Fatalf("【main】执行go version结果出错:%s\n", err.Error())
 			}
