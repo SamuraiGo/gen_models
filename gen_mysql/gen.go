@@ -756,7 +756,7 @@ func generator_table(table *models.TableInfo) {
 			}else{
 				fmt.Fprint(w,table.TableName)
 			}
-			fmt.Fprintln(w,"】表中的多条记录,最多20条")
+			fmt.Fprintln(w,"】表中的多条记录")
 			fmt.Fprintln(w, fmt.Sprintf("func Delete%sIn%s(%ss []%s) (count int64, err error) {", struct_name, pk_column.ColumnName, pk_column.ColumnName, get_field_type(pk_column.DataType)))
 			fmt.Fprintln(w, fmt.Sprintf("\tif len(%ss) <= 0 {", pk_column.ColumnName))
 			fmt.Fprintln(w, fmt.Sprintf("\t\treturn count, errors.New(\"%ss is empty\")", pk_column.ColumnName))
