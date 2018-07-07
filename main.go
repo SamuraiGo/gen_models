@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const version = "2018.0706.1530.0"
+const version = "2018.0707.1145.0"
 
 func main() {
 
